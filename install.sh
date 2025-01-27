@@ -66,8 +66,7 @@ case "$OS" in
     CYGWIN*|MINGW32*|MSYS*|MINGW*)
         echo "Windows detected. Please install Rust manually from https://rustup.rs/"
         echo "After installation, run the following command in a new terminal:"
-        echo "rustup install nightly && rustup default nightly"
-        echo "cargo +nightly install --git https://github.com/Gorocy/krithon-prover"
+        echo "cargo install --git https://github.com/Gorocy/krithon-prover"
         echo "Then, create a registry entry for the manifest file."
         ;;
     *)
