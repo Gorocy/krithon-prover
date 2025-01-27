@@ -21,24 +21,13 @@ install_rust() {
     fi
 }
 
-# Function to ensure nightly Rust is installed
-ensure_nightly_rust() {
-    if rustup toolchain list | grep -q "nightly"; then
-        echo "Nightly Rust is already installed."
-    else
-        echo "Installing nightly Rust..."
-        rustup install nightly
-    fi
-    rustup default nightly
-}
-
 # Function to install the project using Cargo
 install_project() {
     if cargo install --list | grep -q "krithon-prover"; then
         echo "krithon-prover is already installed. Skipping installation."
     else
         echo "Installing krithon-prover..."
-        cargo +nightly install --git https://github.com/Gorocy/krithon-prover
+        cargo install --git https://github.com/Gorocy/krithon-prover
     fi
 }
 
@@ -65,7 +54,6 @@ OS="$(uname -s)"
 case "$OS" in
     Linux*|Darwin*)
         install_rust
-        ensure_nightly_rust
         install_project
         BINARY_PATH="$(echo ~/.cargo/bin/krithon-prover)"
         MANIFEST_PATH="/etc/opt/chrome/native-messaging-hosts/com.notary.krithon.json"
