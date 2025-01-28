@@ -84,16 +84,13 @@ async fn main() -> tokio::io::Result<()> {
                 communication::logging_message(&mut stdout, "Request headers done").await;
 
                 let socket = TcpStream::connect(args.verifier_address).await?;
+
                 communication::logging_message(&mut stdout, "Connecting to verifier").await;
+
                 prover(socket, request, args.max_sent_data, args.max_recv_data, &mut stdout).await;
-                communication::send_response(
-                    serde_json::json!({
-                        "status": "success"
-                    }),
-                    MessageType::Message,
-                    &mut stdout,
-                )
-                .await;
+
+                communication::logging_message(&mut stdout, "Prover done successfully").await;
+
             }
             Err(e) => {
                 communication::send_error_response(&e.to_string(), &mut stdout).await;
