@@ -10,7 +10,6 @@ use hyper::{
 };
 use serde::{Deserialize, Serialize};
 use tokio::net::TcpStream;
-use tracing::Level;
 use url::Url;
 use utils::prover;
 
