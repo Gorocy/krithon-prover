@@ -81,10 +81,10 @@ async fn main() -> tokio::io::Result<()> {
                         panic!("Header must be in the format 'Key: Value'");
                     }
                 }
-                communication::send_test_message(&mut stdout, "Request headers done").await;
+                communication::logging_message(&mut stdout, "Request headers done").await;
 
                 let socket = TcpStream::connect(args.verifier_address).await?;
-                communication::send_test_message(&mut stdout, "Connecting to verifier").await;
+                communication::logging_message(&mut stdout, "Connecting to verifier").await;
                 prover(socket, request, args.max_sent_data, args.max_recv_data, &mut stdout).await;
                 communication::send_response(
                     serde_json::json!({
