@@ -10,7 +10,7 @@ use crate::errors::{Errors, Result};
 #[derive(serde::Serialize)]
 pub enum MessageType {
     Message,
-    Proof,
+    Logging
 }
 
 // Helper function to send error messages as JSON
@@ -100,5 +100,5 @@ pub async fn logging_message(stdout: &mut Stdout, message: &str) {
     let logging_message = serde_json::json!({
         "logging": message,
     });
-    send_response(logging_message, MessageType::Message, stdout).await;
+    send_response(logging_message, MessageType::Logging, stdout).await;
 }
