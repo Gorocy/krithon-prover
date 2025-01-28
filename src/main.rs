@@ -10,6 +10,7 @@ use hyper::{
 };
 use serde::{Deserialize, Serialize};
 use tokio::net::TcpStream;
+use tracing::Level;
 use url::Url;
 use utils::prover;
 
@@ -43,13 +44,6 @@ async fn main() -> tokio::io::Result<()> {
     let mut stdout: tokio::io::Stdout = tokio::io::stdout();
     let mut stdin: tokio::io::Stdin = tokio::io::stdin();
 
-    // tracing_subscriber::fmt::fmt()
-    //     .with_max_level(Level::INFO)
-    //     .init();
-
-    // // Parse arguments
-    // let args = Args::parse();
-
     loop {
         let message_string = communication::read_message(&mut stdin).await;
         let test_message = serde_json::json!({
@@ -58,17 +52,7 @@ async fn main() -> tokio::io::Result<()> {
         communication::send_response(test_message, MessageType::Message, &mut stdout).await;
         match message_string {
             Ok(message) => {
-                let test_message = serde_json::json!({
-                    "message": "Message received second",
-                    "args": message.clone()
-                });
-                communication::send_response(test_message, MessageType::Message, &mut stdout).await;
                 let args: Args = serde_json::from_str(&message).unwrap();
-                let example_json = serde_json::json!({
-                    "message": "Message received",
-                    "args": args.clone()
-                });
-                communication::send_response(example_json, MessageType::Message, &mut stdout).await;
 
                 let host = args.server_uri.host().unwrap().to_owned();
                 let mut request = Request::builder()
@@ -79,6 +63,7 @@ async fn main() -> tokio::io::Result<()> {
                     .body(Empty::<Bytes>::new())
                     .unwrap();
                 let request_headers = request.headers_mut();
+
                 for header in args.headers {
                     // Split headers in the format "Key: Value"
                     if let Some((key, value)) = header.split_once(':') {
@@ -97,12 +82,19 @@ async fn main() -> tokio::io::Result<()> {
                         panic!("Header must be in the format 'Key: Value'");
                     }
                 }
+                communication::send_test_message(&mut stdout, "Request headers done").await;
 
                 let socket = TcpStream::connect(args.verifier_address).await?;
-                prover(socket, request, args.max_sent_data, args.max_recv_data).await;
-                communication::send_response(serde_json::json!({
-                    "status": "success"
-                }), MessageType::Message, &mut stdout).await;
+                communication::send_test_message(&mut stdout, "Connecting to verifier").await;
+                prover(socket, request, args.max_sent_data, args.max_recv_data, &mut stdout).await;
+                communication::send_response(
+                    serde_json::json!({
+                        "status": "success"
+                    }),
+                    MessageType::Message,
+                    &mut stdout,
+                )
+                .await;
             }
             Err(e) => {
                 communication::send_error_response(&e.to_string(), &mut stdout).await;

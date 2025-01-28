@@ -1,5 +1,5 @@
-use std::{collections::HashMap, ops::Range};
 use pest::{iterators::Pair, RuleType};
+use std::{collections::HashMap, ops::Range};
 
 #[derive(Debug, Clone, Default)]
 pub struct RangedHeader {
@@ -69,11 +69,12 @@ pub trait CommonRule: RuleType {
     fn rule_type(&self) -> CommonRuleType;
 }
 
-
 pub struct CommonParser;
 
 impl CommonParser {
-    pub fn parse_header<R: CommonRule>(pair: Pair<R>) -> Result<(String, RangedHeader), &'static str> {
+    pub fn parse_header<R: CommonRule>(
+        pair: Pair<R>,
+    ) -> Result<(String, RangedHeader), &'static str> {
         let range = pair.as_span().start()..pair.as_span().end();
         let mut inner = pair.into_inner();
 
@@ -138,7 +139,6 @@ impl CommonParser {
     }
 }
 
-
 pub trait Searchable {
     fn get_headers(&self) -> &HashMap<String, RangedHeader>;
     fn get_content(&self) -> Option<&RangedValue>;
@@ -146,12 +146,16 @@ pub trait Searchable {
         Vec::new()
     }
 
-    fn get_all_ranges_for_keypaths(&self, keypaths: &[&str], headers: &[&str]) -> Vec<Range<usize>> {
+    fn get_all_ranges_for_keypaths(
+        &self,
+        keypaths: &[&str],
+        headers: &[&str],
+    ) -> Vec<Range<usize>> {
         let mut ranges = Vec::new();
-        
+
         // Add any additional ranges specific to the type
         ranges.extend(self.get_additional_ranges());
-                
+
         // Check headers for matching keys
         for (key, header) in self.get_headers() {
             if headers.contains(&key.as_str()) {
@@ -179,7 +183,7 @@ pub trait Searchable {
                     let mut new_path = current_path.clone();
                     new_path.push(key.clone());
                     let path_str = new_path.join(".");
-                    
+
                     if keypaths.contains(&path_str.as_str()) {
                         let start = val.get_range().start;
                         let end = val.get_range().end;

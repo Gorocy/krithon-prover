@@ -1,8 +1,8 @@
-use std::collections::HashMap;
+use crate::ast::{CommonParser, CommonRule, CommonRuleType, RangedHeader, RangedValue, Searchable};
+use pest::iterators::Pair;
 use pest::{iterators::Pairs, Parser};
 use pest_derive::Parser;
-use crate::ast::{RangedHeader, RangedValue, CommonParser, CommonRule, Searchable, CommonRuleType};
-use pest::iterators::Pair;
+use std::collections::HashMap;
 
 #[derive(Parser)]
 #[grammar = "response.pest"]
@@ -30,20 +30,17 @@ impl TryFrom<Pairs<'_, Rule>> for Response {
                 Rule::object | Rule::array => {
                     content = parse_response_value(pair);
                 }
-                _ => continue
+                _ => continue,
             }
         }
 
-        Ok(Self {
-            headers,
-            content,
-        })
+        Ok(Self { headers, content })
     }
 }
 
 pub fn parse_response(input: &str) -> Result<Response, &'static str> {
-    let pairs = ResponseParser::parse(Rule::response, input)
-        .map_err(|_| "Failed to parse response")?;
+    let pairs =
+        ResponseParser::parse(Rule::response, input).map_err(|_| "Failed to parse response")?;
     Response::try_from(pairs)
 }
 
