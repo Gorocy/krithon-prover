@@ -54,7 +54,7 @@ async fn main() -> tokio::io::Result<()> {
                 let args: Args = match serde_json::from_str(&message) {
                     Ok(args) => args,
                     Err(e) => {
-                        communication::logging_message(&mut stdout, &format!("Failed to parse arguments: {}", e)).await;
+                        communication::send_error_response(&format!("Failed to parse arguments: {}", e), &mut stdout).await;
                         continue;
                     }
                 };
@@ -62,7 +62,7 @@ async fn main() -> tokio::io::Result<()> {
                 let host = match args.server_uri.host() {
                     Some(host) => host.to_owned(),
                     None => {
-                        communication::logging_message(&mut stdout, "Server URI does not have a host").await;
+                        communication::send_error_response(&format!("Server URI does not have a host"), &mut stdout).await;
                         continue;
                     }
                 };
@@ -76,7 +76,7 @@ async fn main() -> tokio::io::Result<()> {
                 {
                     Ok(req) => req,
                     Err(e) => {
-                        communication::logging_message(&mut stdout, &format!("Failed to build request: {}", e)).await;
+                        communication::send_error_response(&format!("Failed to build request: {}", e), &mut stdout).await;
                         continue;
                     }
                 };
@@ -89,20 +89,20 @@ async fn main() -> tokio::io::Result<()> {
                         let key = match key.trim().parse::<HeaderName>() {
                             Ok(k) => k,
                             Err(e) => {
-                                communication::logging_message(&mut stdout, &format!("Invalid header name '{}': {}", key, e)).await;
+                                communication::send_error_response(&format!("Invalid header name '{}': {}", key, e), &mut stdout).await;
                                 continue;
                             }
                         };
                         let value = match value.trim().parse::<HeaderValue>() {
                             Ok(v) => v,
                             Err(e) => {
-                                communication::logging_message(&mut stdout, &format!("Invalid header value '{}': {}", value, e)).await;
+                                communication::send_error_response(&format!("Invalid header value '{}': {}", value, e), &mut stdout).await;
                                 continue;
                             }
                         };
                         request_headers.insert(key, value);
                     } else {
-                        communication::logging_message(&mut stdout, &format!("Header '{}' is not in 'Key: Value' format", header)).await;
+                        communication::send_error_response(&format!("Header '{}' is not in 'Key: Value' format", header), &mut stdout).await;
                         continue;
                     }
                 }
@@ -111,7 +111,7 @@ async fn main() -> tokio::io::Result<()> {
                 let socket = match TcpStream::connect(args.verifier_address).await {
                     Ok(s) => s,
                     Err(e) => {
-                        communication::logging_message(&mut stdout, &format!("Failed to connect to verifier: {}", e)).await;
+                        communication::send_error_response(&format!("Failed to connect to verifier: {}", e), &mut stdout).await;
                         continue;
                     }
                 };
@@ -119,7 +119,7 @@ async fn main() -> tokio::io::Result<()> {
                 communication::logging_message(&mut stdout, "Connecting to verifier").await;
 
                 if let Err(e) = prover(socket, request, args.max_sent_data, args.max_recv_data, &mut stdout).await {
-                    communication::logging_message(&mut stdout, &format!("Prover encountered an error: {}", e)).await;
+                    communication::send_error_response( &format!("Prover encountered an error: {}", e), &mut stdout).await;
                     continue;
                 }
 
